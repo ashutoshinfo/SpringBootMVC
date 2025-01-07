@@ -75,9 +75,6 @@ public class UserController {
      */
     @GetMapping("/home")
     public String home(HttpServletRequest request, Model model) {
-//        if (!SessionUtility.isSessionValid(request)) {
-//            return "redirect:/user/login";
-//        }
         return "home";
     }
 }
