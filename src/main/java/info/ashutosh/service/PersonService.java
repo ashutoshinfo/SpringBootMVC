@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.ui.Model;
 import org.springframework.web.servlet.ModelAndView;
 
-import info.ashutosh.dto.AllPersonDto;
+import info.ashutosh.dto.PersonDto;
 import info.ashutosh.dto.PersonRegistrationDto;
 import info.ashutosh.dto.UserCred;
 import info.ashutosh.entity.Department;
@@ -59,10 +59,10 @@ public class PersonService {
     }
 
 
-    public List<AllPersonDto> getAllPersons() {
+    public List<PersonDto> getAllPersons() {
         return personRepository.findAll().stream().map(person -> {
             Department department = person.getDepartment();
-            return new AllPersonDto(
+            return new PersonDto(
                     person.getId(),
                     person.getName(),
                     department != null ? department.getDeptName() : null,
@@ -72,9 +72,9 @@ public class PersonService {
         }).collect(Collectors.toList());
     }
 
-    public AllPersonDto getPersonDtoById(Long personId) {
+    public PersonDto getPersonDtoById(Long personId) {
         return personRepository.findById(personId).map(person ->
-                new AllPersonDto(
+                new PersonDto(
                         person.getId(),
                         person.getName(),
                         person.getDepartment().getDeptId(),
@@ -83,7 +83,7 @@ public class PersonService {
                 )).orElse(null);
     }
 
-    public boolean updatePerson(AllPersonDto editPersonDto, Model model) {
+    public boolean updatePerson(PersonDto editPersonDto, Model model) {
         // Check if an email already exists for another user
         Optional<Person> existingPerson = personRepository.findByEmail(editPersonDto.getEmail());
         if (existingPerson.isPresent() && !existingPerson.get().getId().equals(editPersonDto.getId())) {

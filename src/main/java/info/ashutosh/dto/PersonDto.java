@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class AllPersonDto {
+public class PersonDto {
 
 	private Long id;
 	private String personName;
@@ -15,10 +15,10 @@ public class AllPersonDto {
 	private String password;
 	
 	
-	public AllPersonDto() {
+	public PersonDto() {
 	}
 
-	public AllPersonDto(Long id, String personName, Long long1, String email, String password) {
+	public PersonDto(Long id, String personName, Long long1, String email, String password) {
 		super();
 		this.id = id;
 		this.personName = personName;
@@ -27,7 +27,7 @@ public class AllPersonDto {
 		this.password = password;
 	}
 	
-	public AllPersonDto(Long id, String personName, String long1, String email, String password) {
+	public PersonDto(Long id, String personName, String long1, String email, String password) {
 		super();
 		this.id = id;
 		this.personName = personName;

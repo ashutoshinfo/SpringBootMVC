@@ -12,9 +12,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
 
-import info.ashutosh.dto.AllPersonDto;
+import info.ashutosh.dto.PersonDto;
 import info.ashutosh.dto.PersonRegistrationDto;
-import info.ashutosh.entity.Department;
 import info.ashutosh.service.DepartmentService;
 import info.ashutosh.service.PersonService;
 import jakarta.servlet.http.HttpSession;
@@ -64,10 +63,10 @@ public class PersonController {
     @GetMapping("/edit/{id}")
     public String showEditForm(@PathVariable Long id, Model model, HttpServletRequest request) {
 
-        if (SessionUtility.isSessionValid(request)) {
+        if (!SessionUtility.isSessionValid(request)) {
             return "redirect:/login";
         }
-        AllPersonDto dtoObject = personService.getPersonDtoById(id);
+        PersonDto dtoObject = personService.getPersonDtoById(id);
         if (dtoObject == null) {
             return "error";
         }
@@ -78,8 +77,8 @@ public class PersonController {
     }
 
     @PostMapping("/edit/{id}")
-    public String updatePerson(@PathVariable Long id, @ModelAttribute("dtoObject") AllPersonDto dtoObject, Model model, HttpSession session) {
-        if (session.getAttribute("myAttribute") == null) {
+    public String updatePerson(@PathVariable Long id, @ModelAttribute("dtoObject") PersonDto dtoObject, Model model,  HttpServletRequest request) {
+        if (!SessionUtility.isSessionValid(request)) {
             return "redirect:/login";
         }
 
