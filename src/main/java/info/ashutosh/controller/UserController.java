@@ -9,14 +9,12 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 
 import info.ashutosh.dto.UserCred;
 import info.ashutosh.service.PersonService;
 import jakarta.validation.Valid;
 
 @Controller
-@RequestMapping
 public class UserController {
 
     private final PersonService personService;
