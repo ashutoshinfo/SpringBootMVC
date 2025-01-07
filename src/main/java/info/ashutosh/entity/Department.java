@@ -17,16 +17,11 @@ public class Department {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long deptid;
+	private Long deptId;
 
-	private String deptname;
+	private String deptName;
 
 	@OneToMany(mappedBy = "department")
 	private List<Person> person;
-
-	@Override
-	public String toString() {
-		return "Department [deptid=" + deptid + ", deptname=" + deptname + ", person=" + person + "]";
-	}
 
 }

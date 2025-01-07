@@ -7,16 +7,9 @@ import lombok.Setter;
 @Setter
 public class PersonRegistrationDto {
 
-	private String name;
+	private String personName;
 	private String departId;
 	private String email;
 	private String password;
-	@Override
-	public String toString() {
-		return "PersonRegistrationDto [name=" + name + ", departId=" + departId + ", email=" + email + ", password="
-				+ password + "]";
-	}
-	
-	
 
 }

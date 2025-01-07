@@ -1,5 +1,8 @@
 package info.ashutosh.controller;
 
+import info.ashutosh.utility.SessionUtility;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -10,12 +13,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import info.ashutosh.dto.UserCred;
 import info.ashutosh.service.PersonService;
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
-@RequestMapping("/user")
+@RequestMapping
 public class UserController {
 
     private final PersonService personService;
@@ -30,9 +31,9 @@ public class UserController {
      * Redirects to the home page if the user is already logged in.
      */
     @GetMapping("/login")
-    public String login(Model model, HttpSession session) {
-        if (session.getAttribute("myAttribute") != null) {
-            return "redirect:/user/home";
+    public String login(Model model, HttpServletRequest request) {
+        if (SessionUtility.isSessionValid(request)) {
+            return "redirect:/home";
         }
         model.addAttribute("newCred", new UserCred());
         return "login";
@@ -43,9 +44,9 @@ public class UserController {
      * Redirects to the home page after logout.
      */
     @GetMapping("/logout")
-    public String logout(HttpSession session) {
-        session.invalidate();
-        return "redirect:/user/home";
+    public String logout(HttpServletRequest request, HttpServletResponse response) {
+        SessionUtility.destroySession(request, response);
+        return "redirect:/home";
     }
 
     /**
@@ -55,26 +56,30 @@ public class UserController {
      */
     @PostMapping("/check_cred")
     public String checkLogin(
-        @ModelAttribute("userCred") @Valid UserCred cred,
-        HttpSession session,
-        RedirectAttributes redirectAttributes) {
+            @ModelAttribute("userCred") @Valid UserCred cred,
+            Model model,
+            HttpServletRequest request,
+            HttpServletResponse response) {
 
-        boolean isValidCredential = personService.checkCredentials(cred, session);
-
-        if (isValidCredential) {
-            return "redirect:/user/home";
+        if (personService.checkCredentials(cred, request, response)) {
+            SessionUtility.createSession(request, response, cred.getUsername(), cred.getUsername());
+            return "redirect:/home";
         }
 
-        redirectAttributes.addFlashAttribute("username", cred.getUsername());
-        redirectAttributes.addFlashAttribute("errorMsg", "Invalid credentials. Please try again.");
-        return "redirect:/user/login";
+        model.addAttribute("newCred", new UserCred());
+        model.addAttribute("username", cred.getUsername());
+        model.addAttribute("errorMsg", "Invalid credentials. Please try again.");
+        return "login";
     }
 
     /**
      * Handles the GET request to display the home page.
      */
     @GetMapping("/home")
-    public String home() {
+    public String home(HttpServletRequest request, Model model) {
+//        if (!SessionUtility.isSessionValid(request)) {
+//            return "redirect:/user/login";
+//        }
         return "home";
     }
 }

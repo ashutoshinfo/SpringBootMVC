@@ -1,5 +1,7 @@
 package info.ashutosh.controller;
 
+import info.ashutosh.utility.SessionUtility;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -18,9 +20,8 @@ import info.ashutosh.service.PersonService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 
-
 @Controller
-@RequestMapping("/register")
+@RequestMapping
 public class PersonController {
 
     private final DepartmentService departmentService;
@@ -34,18 +35,19 @@ public class PersonController {
 
     @GetMapping("/registration")
     public String showRegistrationForm(Model model) {
-        model.addAttribute("newUser", new PersonRegistrationDto());
+        model.addAttribute("isEditMode", false); // Not in edit mode
+        model.addAttribute("dtoObject", new PersonRegistrationDto());
         model.addAttribute("departments", departmentService.getAllDepartments());
-        return "reg";
+        return "registration_edit";
     }
 
-    @PostMapping("/new_register")
-    public ModelAndView registerUser(@ModelAttribute("newUser") @Valid PersonRegistrationDto dto) {
+    @PostMapping("/register")
+    public ModelAndView registerUser(@ModelAttribute("dtoObject") @Valid PersonRegistrationDto dtoObject) {
         ModelAndView modelAndView = new ModelAndView();
-        if (personService.registerUser(dto, modelAndView)) {
+        if (personService.registerUser(dtoObject, modelAndView)) {
             modelAndView.setViewName("success");
         } else {
-            modelAndView.setViewName("registration");
+            modelAndView.setViewName("registration_edit");
         }
         return modelAndView;
     }
@@ -53,50 +55,50 @@ public class PersonController {
     @GetMapping("/all")
     public String listAllPersons(Model model, HttpSession session) {
         if (session.getAttribute("myAttribute") == null) {
-            return "redirect:/user/login";
+            return "redirect:/login";
         }
         model.addAttribute("allPersons", personService.getAllPersons());
         return "allPersons";
     }
 
     @GetMapping("/edit/{id}")
-    public String showEditForm(@PathVariable Long id, Model model, HttpSession session) {
-        if (session.getAttribute("myAttribute") == null) {
-            return "redirect:/user/login";
+    public String showEditForm(@PathVariable Long id, Model model, HttpServletRequest request) {
+
+        if (SessionUtility.isSessionValid(request)) {
+            return "redirect:/login";
         }
-        AllPersonDto editPersonDto = personService.getPersonDtoById(id);
-        if (editPersonDto == null) {
+        AllPersonDto dtoObject = personService.getPersonDtoById(id);
+        if (dtoObject == null) {
             return "error";
         }
+        model.addAttribute("isEditMode", true); // In edit mode
         model.addAttribute("departments", departmentService.getAllDepartments());
-        model.addAttribute("editPersonDto", editPersonDto);
-        return "editPerson";
+        model.addAttribute("dtoObject", dtoObject);
+        return "registration_edit";
     }
 
     @PostMapping("/edit/{id}")
-    public String updatePerson(@PathVariable Long id,
-                               @ModelAttribute("editPersonDto") AllPersonDto editPersonDto,
-                               Model model,
-                               HttpSession session) {
+    public String updatePerson(@PathVariable Long id, @ModelAttribute("dtoObject") AllPersonDto dtoObject, Model model, HttpSession session) {
         if (session.getAttribute("myAttribute") == null) {
-            return "redirect:/user/login";
+            return "redirect:/login";
         }
 
-        boolean isUpdated = personService.updatePerson(editPersonDto, model);
+        boolean isUpdated = personService.updatePerson(dtoObject, model);
         if (!isUpdated) {
             // If email conflict or other issue occurs, redirect back to the edit page
-            return "editPerson"; // Replace with the name of the edit page template
+            return "registration_edit"; // Replace with the name of the edit page template
         }
 
-        return "redirect:/register/all";
+        return "redirect:/all";
     }
-    
+
+
     @PostMapping("/delete/{id}")
     public String deletePerson(@PathVariable Long id, HttpSession session) {
         if (session.getAttribute("myAttribute") == null) {
-            return "redirect:/user/login";
+            return "redirect:/login";
         }
         personService.deletePerson(id);
-        return "redirect:/register/all";
+        return "redirect:/all";
     }
 }

@@ -6,6 +6,6 @@ import info.ashutosh.entity.Department;
 
 public interface DepartmentRepository extends JpaRepository<Department, Long> {
 
-	Department findByDeptname(String departName);
+	Department findByDeptName(String departName);
 
 }
