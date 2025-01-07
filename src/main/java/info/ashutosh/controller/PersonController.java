@@ -74,14 +74,23 @@ public class PersonController {
     }
 
     @PostMapping("/edit/{id}")
-    public String updatePerson(@PathVariable Long id, @ModelAttribute("editPersonDto") AllPersonDto editPersonDto, HttpSession session) {
+    public String updatePerson(@PathVariable Long id,
+                               @ModelAttribute("editPersonDto") AllPersonDto editPersonDto,
+                               Model model,
+                               HttpSession session) {
         if (session.getAttribute("myAttribute") == null) {
             return "redirect:/user/login";
         }
-        personService.updatePerson(editPersonDto);
+
+        boolean isUpdated = personService.updatePerson(editPersonDto, model);
+        if (!isUpdated) {
+            // If email conflict or other issue occurs, redirect back to the edit page
+            return "editPerson"; // Replace with the name of the edit page template
+        }
+
         return "redirect:/register/all";
     }
-
+    
     @PostMapping("/delete/{id}")
     public String deletePerson(@PathVariable Long id, HttpSession session) {
         if (session.getAttribute("myAttribute") == null) {
