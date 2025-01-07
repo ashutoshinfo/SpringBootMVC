@@ -1,8 +1,8 @@
 package info.ashutosh.service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
@@ -23,111 +23,91 @@ import jakarta.validation.Valid;
 @Service
 public class PersonService {
 
-	@Autowired
-	PersonRepository personRepository;
+    private final PersonRepository personRepository;
+    private final DepartmentRepository departmentRepository;
+    private final DepartmentService departmentService;
 
-	@Autowired
-	DepartmentRepository departmentRepository;
+    @Autowired
+    public PersonService(PersonRepository personRepository, DepartmentRepository departmentRepository, DepartmentService departmentService) {
+        this.personRepository = personRepository;
+        this.departmentRepository = departmentRepository;
+        this.departmentService = departmentService;
+    }
 
-	public Boolean registerUser(PersonRegistrationDto dto, ModelAndView andView) {
+    public boolean registerUser(PersonRegistrationDto dto, ModelAndView modelAndView) {
+        Long departmentId = CommonMethod.stringToLong(dto.getDepartId());
+        Optional<Department> department = departmentRepository.findById(departmentId);
 
-		Long stringToLong = CommonMethod.stringToLong(dto.getDepartId());
+        if (personRepository.findByEmail(dto.getEmail()).isPresent()) {
+            modelAndView.addObject("msg", "User with this email already exists");
+            modelAndView.addObject("departments", departmentService.getAllDepartments());
+            return false;
+        }
 
-		Department department = new Department();
+        if (department.isPresent()) {
+            personRepository.save(new Person(dto.getName(), dto.getEmail(), dto.getPassword(), department.get()));
+            return true;
+        } else {
+            modelAndView.addObject("msg", "Department not found");
+            modelAndView.addObject("departments", departmentService.getAllDepartments());
+            return false;
+        }
+    }
 
-		department.setDeptid(stringToLong);
 
-		Optional<Department> findOne = departmentRepository.findOne(Example.of(department));
+    public List<AllPersonDto> getAllPersons() {
+        return personRepository.findAll().stream().map(person -> {
+            Department department = person.getDepartment();
+            return new AllPersonDto(
+                person.getId(),
+                person.getName(),
+                department != null ? department.getDeptname() : null,
+                person.getEmail(),
+                person.getPassword()
+            );
+        }).collect(Collectors.toList());
+    }
 
-		Optional<Person> userAlreadyExist = personRepository.findByEmail(dto.getEmail());
+    public AllPersonDto getPersonDtoById(Long personId) {
+        return personRepository.findById(personId).map(person ->
+            new AllPersonDto(
+                person.getId(),
+                person.getName(),
+                person.getDepartment().getDeptid(),
+                person.getEmail(),
+                person.getPassword()
+            )).orElse(null);
+    }
 
-		if (userAlreadyExist.isPresent()) {
-			andView.addObject("msg", "User with email Already Existed");
-			return null;
-		}
+    public void updatePerson(AllPersonDto editPersonDto) {
+        personRepository.findById(editPersonDto.getPersonId()).ifPresent(person -> {
+            departmentRepository.findById(editPersonDto.getDepartId()).ifPresent(department -> {
+                person.setName(editPersonDto.getPersonName());
+                person.setDepartment(department);
+                person.setEmail(editPersonDto.getEmail());
+                person.setPassword(editPersonDto.getPassword());
+                personRepository.save(person);
+            });
+        });
+    }
 
-		if (findOne.isPresent()) {
+    public void deletePerson(Long personId) {
+        personRepository.deleteById(personId);
+    }
 
-			Person p = new Person(dto.getName(), dto.getEmail(), dto.getPassword(), findOne.get());
-			personRepository.save(p);
-		} else {
-			andView.addObject("msg", "Depaerment Not Existed");
-			return null;
-		}
-		return true;
+    public boolean checkCredentials(@Valid UserCred cred, HttpSession session) {
+        Person person = new Person();
+        person.setEmail(cred.getUsername());
+        person.setPassword(cred.getPassword());
 
-	}
+        Optional<Person> findOne = personRepository.findOne(Example.of(person));
+        if (findOne.isPresent()) {
+            session.setAttribute("myAttribute", "Hello, Session!");
+            return true;
+        } else {
+            return false;
 
-	public List<AllPersonDto> getAllPersonsData() {
-		List<Person> persons = personRepository.findAll();
-		List<AllPersonDto> allPersonDtos = new ArrayList<>();
+        }
 
-		for (Person person : persons) {
-			Department department = person.getDepartment();
-
-			AllPersonDto dto = new AllPersonDto(person.getId(), person.getName(),
-					(department != null) ? department.getDeptname() : null, person.getEmail(), person.getPassword());
-
-			allPersonDtos.add(dto);
-		}
-
-		return allPersonDtos;
-	}
-
-	public Person getPersonById(Long id) {
-		Person byId = personRepository.getReferenceById(id);
-		return byId;
-	}
-
-	public AllPersonDto getEditPersonDtoById(Long personId) {
-		Person person = personRepository.findById(personId).orElse(null);
-
-		if (person != null) {
-
-			return new AllPersonDto(person.getId(), person.getName(), person.getDepartment().getDeptid(),
-					person.getEmail(), person.getPassword());
-		}
-
-		return null; // or throw an exception, depending on your requirements
-	}
-
-	public void updatePerson(AllPersonDto editPersonDto) {
-		Person person = personRepository.findById(editPersonDto.getPersonId()).orElse(null);
-
-		if (person != null) {
-			person.setName(editPersonDto.getPersonName());
-			// Assuming the department name is available through the person's department
-			Optional<Department> findById = departmentRepository.findById(editPersonDto.getDepartId());
-			if (findById.isPresent()) {
-				person.setDepartment(findById.get());
-				person.setEmail(editPersonDto.getEmail());
-				person.setPassword(editPersonDto.getPassword());
-
-				personRepository.save(person);
-
-			}
-
-		}
-	}
-
-	public void deletePersonById(Long personId) {
-		personRepository.deleteById(personId);
-	}
-
-	public boolean check_cred(@Valid UserCred cred, HttpSession session) {
-		Person person = new Person();
-		person.setEmail(cred.getUsername());
-		person.setPassword(cred.getPassword());
-
-		Optional<Person> findOne = personRepository.findOne(Example.of(person));
-		if (findOne.isPresent()) {
-			session.setAttribute("myAttribute", "Hello, Session!");
-			return true;
-		} else {
-			return false;
-
-		}
-
-	}
-
+    }
 }
