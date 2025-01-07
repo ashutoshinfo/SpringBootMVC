@@ -79,16 +79,33 @@ public class PersonService {
             )).orElse(null);
     }
 
-    public void updatePerson(AllPersonDto editPersonDto) {
-        personRepository.findById(editPersonDto.getPersonId()).ifPresent(person -> {
+    public boolean updatePerson(AllPersonDto editPersonDto, Model model) {
+        // Check if an email already exists for another user
+        Optional<Person> existingPerson = personRepository.findByEmail(editPersonDto.getEmail());
+        if (existingPerson.isPresent() && !existingPerson.get().getId().equals(editPersonDto.getPersonId())) {
+            
+            model.addAttribute("editPersonDto", editPersonDto);
+            model.addAttribute("errorMsg", "A user with this email already exists.");
+            model.addAttribute("departments", departmentService.getAllDepartments());
+            return false;
+        }
+
+        // Proceed with updating the person
+        return personRepository.findById(editPersonDto.getPersonId()).map(person -> {
             departmentRepository.findById(editPersonDto.getDepartId()).ifPresent(department -> {
                 person.setName(editPersonDto.getPersonName());
                 person.setDepartment(department);
                 person.setEmail(editPersonDto.getEmail());
-                person.setPassword(editPersonDto.getPassword());
+
+                // Keep the existing password if not provided
+                if (editPersonDto.getPassword() != null && !editPersonDto.getPassword().isBlank()) {
+                    person.setPassword(editPersonDto.getPassword());
+                }
+
                 personRepository.save(person);
             });
-        });
+            return true;
+        }).orElse(false);
     }
 
     public void deletePerson(Long personId) {
