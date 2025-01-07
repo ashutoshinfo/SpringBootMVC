@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Employee Management</title>
+</head>
+
+<body>
+
+<!-- Dynamic Header for Editing or Registering -->
+<h3 th:text="${isEditMode} ? 'Edit Employee!' : 'Register New Employee!'"></h3>
+
+<!-- Navigation Links -->
+<ul>
+    <div th:if="${session['myAttribute'] != null}">
+        <li><a th:href="@{/logout}">Logout</a></li>
+    </div>
+    <div th:unless="${session['myAttribute'] != null}">
+        <li><a th:href="@{/login}">Login</a></li>
+    </div>
+    <li><a th:href="@{/registration}">Register</a></li>
+</ul>
+
+<!-- Display Message -->
+<div th:if="${msg}">
+    <p th:text="${msg}"></p>
+</div>
+
+<!-- Employee Form -->
+
+<form th:action="@{${isEditMode} ? '/edit/' + ${dtoObject.id} : '/register'}"
+      th:object="${dtoObject}"
+      method="post">
+
+
+    <!-- Hidden Field for ID -->
+    <div th:if="${isEditMode}">
+        <input type="hidden" th:field="*{id}">
+    </div>
+
+
+    <!-- Name Input -->
+    <label for="name">Name:</label>
+    <input type="text" id="name" th:field="*{personName}" required>
+    <br>
+
+    <!-- Department Dropdown -->
+    <label for="department">Department:</label>
+    <select id="departId" th:field="*{departId}" required>
+        <option value="">Select Department</option>
+        <option th:each="dept : ${departments}" th:value="${dept.deptId}" th:text="${dept.deptName}"
+                th:selected="${dept.deptId eq dtoObject.departId}"></option>
+    </select>
+    <br>
+
+    <!-- Email Input -->
+    <label for="email">Email:</label>
+    <input type="email" id="email" th:field="*{email}" required>
+    <br>
+
+    <!-- Password Input -->
+    <label for="password">Password:</label>
+    <input type="password" id="password" th:field="*{password}" required>
+    <br>
+
+    <!-- Submit Button -->
+    <button type="submit" th:text="${isEditMode} ? 'Save Changes' : 'Register'">Save Changes</button>
+
+</form>
+
+</body>
+
+</html>

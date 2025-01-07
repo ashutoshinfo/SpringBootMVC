@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+	<title>All Persons</title>
+</head>
+
+<body>
+
+	<h2>All Registered Persons</h2>
+		<p>Explore the following links:</p>
+
+	<ul>
+		<div th:if="${session['myAttribute'] != null}">
+			<li><a th:href="@{/logout}">Logout</a></li>
+		</div>
+		<div th:unless="${session['myAttribute'] != null}">
+			<li><a th:href="@{/login}">Login</a></li>
+			<!-- Your main content here -->
+		</div>
+		<li><a th:href="@{/registration}">Register</a></li>
+
+	</ul>
+
+	<table border="1">
+		<thead>
+			<tr>
+				<th>ID</th>
+				<th>Name</th>
+				<th>Department</th>
+				<th>Email</th>
+				<th>Password</th>
+				<th>Action</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr th:each="person : ${allPersons}">
+				<td th:text="${person.id}"></td>
+				<td th:text="${person.personName}"></td>
+				<td th:text="${person.departName}"></td>
+				<td th:text="${person.email}"></td>
+				<td th:text="${person.password}"></td>
+				<!--<td>
+                <a th:href="@{/register/edit/{id}(id=${person.personId})}">Edit</a>
+           		</td>-->
+           		 <td>
+                <a th:href="@{/edit/{id}(id=${person.id})}">Edit</a>
+                <form th:action="@{/delete/{id}(id=${person.id})}" method="post" onclick="return confirm('Are you sure?')" style="display: inline;">
+                    <button type="submit">Delete</button>
+                </form>
+            </td>
+			</tr>
+		</tbody>
+	</table>
+
+</body>
+
+</html>

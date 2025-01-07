@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+	<title>New User Form</title>
+</head>
+
+<body>
+	
+	<ul>
+		<div th:if="${session['myAttribute'] != null}">
+			<li><a th:href="@{/all}">View All Persons</a></li>
+			<li><a th:href="@{/logout}">Logout</a></li>
+		</div>
+		<div th:unless="${session['myAttribute'] != null}">
+			<li><a th:href="@{/login}">Login</a></li>
+			<!-- Your main content here -->
+		</div>
+		<li><a th:href="@{/registration}">Register</a></li>
+
+	</ul>
+
+<!--	<ul>-->
+<!--		<div th:if="${session['myAttribute'] != null}">-->
+<!--			<li><a th:href="@{/all}">View All Persons</a></li>-->
+<!--			<li><a th:href="@{/logout}">Logout</a></li>-->
+<!--		</div>-->
+<!--		<div th:unless="${session['myAttribute'] != null}">-->
+<!--			<li><a th:href="@{/login}">Login</a></li>-->
+<!--			&lt;!&ndash; Your main content here &ndash;&gt;-->
+<!--		</div>-->
+<!--		<li><a th:href="@{/registration}">Register</a></li>-->
+
+<!--	</ul>-->
+
+
+	<h2>Registred</h2>
+
+
+</body>
+
+</html>
