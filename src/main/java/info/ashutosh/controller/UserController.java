@@ -18,44 +18,63 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @RequestMapping("/user")
 public class UserController {
 
-	@Autowired
-	PersonService personService;
+    private final PersonService personService;
 
-	@GetMapping("/login")
-	public String login(Model model,HttpSession session) {
-		boolean check_cred = session.getAttribute("myAttribute")!=null;
-		if (check_cred) {
-			return "redirect:/user/home"; // Redirect to the updated list of all persons
-		} else {
-			model.addAttribute("new_cred", new UserCred());
-			return "login"; // Redirect to the updated list of all persons
-		}
-	}
+    @Autowired
+    public UserController(PersonService personService) {
+        this.personService = personService;
+    }
 
-	@GetMapping("/logout")
-	public String logout(HttpSession session) {
-		session.invalidate();
-		return "redirect:/user/home"; // Redirect to the list of all persons
-	}
+    /**
+     * Handles the GET request to display the login page.
+     * Redirects to the home page if the user is already logged in.
+     */
+    @GetMapping("/login")
+    public String login(Model model, HttpSession session) {
+        if (session.getAttribute("myAttribute") != null) {
+            return "redirect:/user/home";
+        }
+        model.addAttribute("newCred", new UserCred());
+        return "login";
+    }
 
-	@PostMapping("/check_cred")
-	public String checkLogin(@ModelAttribute("userCred") @Valid UserCred cred, HttpSession session, RedirectAttributes redirectAttributes) {
+    /**
+     * Handles the GET request to log out the user and invalidate the session.
+     * Redirects to the home page after logout.
+     */
+    @GetMapping("/logout")
+    public String logout(HttpSession session) {
+        session.invalidate();
+        return "redirect:/user/home";
+    }
 
-		boolean check_cred = personService.check_cred(cred, session);
-		if (check_cred) {
-			return "redirect:/user/home"; // Redirect to the home page
-		} else {
-			redirectAttributes.addFlashAttribute("username", cred.getUsername());
-			redirectAttributes.addFlashAttribute("msg", "Invalid credentials. Please try again.");
-			return "redirect:/user/login"; // Redirect back to the login page
-		}
-	}
+    /**
+     * Handles the POST request to validate user credentials.
+     * Redirects to the home page if credentials are valid.
+     * Redirects back to the login page with an error message if invalid.
+     */
+    @PostMapping("/check_cred")
+    public String checkLogin(
+        @ModelAttribute("userCred") @Valid UserCred cred,
+        HttpSession session,
+        RedirectAttributes redirectAttributes) {
 
+        boolean isValidCredential = personService.checkCredentials(cred, session);
 
-	@GetMapping("/home")
-	public String home() {
-		return "home";
-	}
+        if (isValidCredential) {
+            return "redirect:/user/home";
+        }
 
+        redirectAttributes.addFlashAttribute("username", cred.getUsername());
+        redirectAttributes.addFlashAttribute("errorMsg", "Invalid credentials. Please try again.");
+        return "redirect:/user/login";
+    }
 
+    /**
+     * Handles the GET request to display the home page.
+     */
+    @GetMapping("/home")
+    public String home() {
+        return "home";
+    }
 }
