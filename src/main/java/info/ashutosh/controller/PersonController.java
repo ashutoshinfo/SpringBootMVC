@@ -92,7 +92,6 @@ public class PersonController {
         return "redirect:/all";
     }
 
-
     @PostMapping("/delete/{id}")
     public String deletePerson(@PathVariable Long id, HttpSession session) {
         if (session.getAttribute("myAttribute") == null) {
