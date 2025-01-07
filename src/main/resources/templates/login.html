@@ -28,11 +28,11 @@
     <br>
     <button type="submit">Login</button>
 </form>-->
-<div th:if="${msg}">
-    <p th:text="${msg}"></p>
+<div th:if="${errorMsg}">
+    <p th:text="${errorMsg}"></p>
 </div>
 
-<form th:action="@{/user/check_cred}" th:object="${new_cred}" method="post">
+<form th:action="@{/user/check_cred}" th:object="${newCred}" method="post">
     <div>
         <label for="username">Username:</label>
         <input type="text" id="username" name="username"
